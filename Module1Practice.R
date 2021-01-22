@@ -29,10 +29,15 @@ library(stringr)
 
 # Hardwired inputs for now
 # set directory
-setwd("~/R_Projects/group_TADA")
+getwd()
+#setwd("~/R_Projects/group_TADA")
+setwd("C:/Users/cmulli01/Documents/GitHub/group_TADA")
 fn = "WQP_Sample_Raw-11-25-20.csv"
 coi = "Temperature, water"
-mypercentile = .3
+
+# mypercentile = unname(round(quantile(result, c(.85)),1))
+mypercentile = .85
+
 # end of hardwired inputs
 #
 
@@ -56,16 +61,32 @@ df$Year = year(df$ActivityStartDate)
 #Create a new subset of df called charnames with only unique characteristic names (drop duplicates)
 charnames = df[, c("CharacteristicName")]
 charnames = charnames[!duplicated(charnames)]
+#print(charnames)
 
 #Test SelectCOI function
 df2 = selectCOI(df, coi)
 
+#Remove blank rows in the ResultMeasureValue column so they are not counted in the total for subsequent statistical analyses for your coi
+df2 = df2[!(is.na(df2$ResultMeasureValue) | df2$ResultMeasureValue==""), ]
 
 #View List of Unique Units Associated with your coi (unit)
 #Create a new subset of df2 called unit with only unique units (drop duplicates)
 unit = df2[, c("ResultMeasure.MeasureUnitCode")]
 unit = unit[!duplicated(unit)]
 #View(unit)
+#print(unit)
+
+#Print percentiles and summary statistics (in console)
+result = df2[, c("ResultMeasureValue")]
+percentiles = quantile(result, c(.32, .57, .98)) #change which percentiles are calculated here, calculate as many as you'd like
+print(percentiles)
+stats = summary(result) #includes Min., 1st Qu., Median, Mean, 3rd Qu., Max., NA's
+print(stats)
+
+#Plot histogram of coi
+#You can change the number of breaks (e.g. from 20 to any number you'd like). Set x-axis (xlab) title equal to the coi (characteristic of interest). Set title to coi vs. Frequency using paste function. 
+#dev.new()
+hist(result, breaks=25, main=paste(coi,"vs. Frequency"), xlab=coi)
 
 mythresh = threshold(df2, mypercentile)
 
